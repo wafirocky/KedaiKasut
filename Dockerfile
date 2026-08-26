@@ -6,8 +6,8 @@ FROM php:8.4-cli-alpine AS build
 
 # Wayfinder shells out to `php artisan` during the Vite build, so this stage
 # needs PHP *and* Node together.
-RUN apk add --no-cache git unzip nodejs npm oniguruma-dev sqlite-dev \
-    && docker-php-ext-install mbstring pdo_sqlite
+RUN apk add --no-cache git unzip nodejs npm oniguruma-dev sqlite-dev libpq-dev \
+    && docker-php-ext-install mbstring pdo_sqlite pdo_pgsql
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -31,9 +31,9 @@ FROM php:8.4-cli-alpine AS runtime
 
 # The -dev packages are only needed to compile the extensions; drop them again
 # so the runtime layer stays small.
-RUN apk add --no-cache oniguruma sqlite-libs \
-    && apk add --no-cache --virtual .build-deps oniguruma-dev sqlite-dev \
-    && docker-php-ext-install mbstring pdo_sqlite opcache \
+RUN apk add --no-cache oniguruma sqlite-libs libpq \
+    && apk add --no-cache --virtual .build-deps oniguruma-dev sqlite-dev libpq-dev \
+    && docker-php-ext-install mbstring pdo_sqlite pdo_pgsql opcache \
     && apk del .build-deps
 
 COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini

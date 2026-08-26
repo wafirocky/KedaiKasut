@@ -39,7 +39,7 @@ pertama.
 | 🛡️ **2FA & Passkey** | Two-factor authentication dan log masuk tanpa kata laluan (Laravel Fortify) |
 | 🌗 **Mod gelap** | Tema terang/gelap mengikut pilihan pengguna |
 | 📱 **Responsif** | Reka bentuk mobile-first dengan Tailwind CSS 4 |
-| 🐳 **Docker-ready** | Satu imej, SQLite terbina dalam — tiada servis luaran diperlukan |
+| 🐳 **Docker-ready** | App + Postgres via `compose.prod.yaml`, sama seperti produksi |
 | ✅ **CI lengkap** | Lint, format, type-check dan ujian automatik pada setiap push |
 
 ## 🛠️ Teknologi
@@ -49,7 +49,7 @@ pertama.
 - [Inertia.js 3](https://inertiajs.com/) — jambatan Laravel ↔ React tanpa API berasingan
 - [Laravel Fortify](https://laravel.com/docs/fortify) — autentikasi, 2FA, passkey
 - [Wayfinder](https://github.com/laravel/wayfinder) — route Laravel dengan type-safety di sisi TypeScript
-- SQLite (lalai) — boleh tukar ke MySQL/PostgreSQL
+- SQLite untuk pembangunan, PostgreSQL untuk produksi
 
 **Frontend**
 - [React 19](https://react.dev/) + TypeScript 5.7

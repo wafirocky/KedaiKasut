@@ -1,4 +1,5 @@
-# Runs the production image exactly the way EasyPanel will run it.
+# Runs the production image the way EasyPanel will run it: app container +
+# a separate Postgres service, exactly like the panel's `kedaikasut-postgres`.
 #   docker compose -f compose.prod.yaml up -d --build
 # Reads APP_KEY (and friends) from .env.docker — see .env.docker.example.
 services:
@@ -14,12 +15,37 @@ services:
             - '${APP_PORT:-8000}:8000'
         volumes:
             - 'kedaikasut-data:/data'
+        depends_on:
+            postgres:
+                condition: service_healthy
         healthcheck:
             test: ['CMD', 'php', '-r', 'exit(@file_get_contents("http://127.0.0.1:8000/up") ? 0 : 1);']
             interval: 30s
             timeout: 5s
             retries: 3
             start_period: 30s
+
+    # Local test only. Kredential ni hardcoded sebab Compose interpolate
+    # ${...} dari .env Laravel, bukan .env.docker — kena padan dengan
+    # DB_USERNAME/DB_PASSWORD/DB_DATABASE dalam .env.docker.
+    postgres:
+        image: 'postgres:17-alpine'
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: kedaikasut
+        volumes:
+            - 'kedaikasut-postgres:/var/lib/postgresql/data'
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres -d kedaikasut']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 10s
+
 volumes:
     kedaikasut-data:
+        driver: local
+    kedaikasut-postgres:
         driver: local

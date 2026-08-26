@@ -9,10 +9,27 @@ if [ -z "$APP_KEY" ]; then
     export APP_KEY="base64:$(head -c 32 /dev/urandom | base64)"
 fi
 
-DB_FILE="${DB_DATABASE:-/data/database.sqlite}"
-mkdir -p "$(dirname "$DB_FILE")"
-touch "$DB_FILE"
-chown www-data:www-data "$DB_FILE"
+if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
+    DB_FILE="${DB_DATABASE:-/data/database.sqlite}"
+    mkdir -p "$(dirname "$DB_FILE")"
+    touch "$DB_FILE"
+    chown www-data:www-data "$DB_FILE"
+else
+    # A networked database usually starts accepting connections a few seconds
+    # after this container does, so block instead of crash-looping on migrate.
+    echo "waiting for ${DB_CONNECTION} at ${DB_HOST:-?}:${DB_PORT:-?}..."
+    attempt=0
+    until php artisan db:show >/dev/null 2>&1; do
+        attempt=$((attempt + 1))
+        if [ "$attempt" -ge 60 ]; then
+            echo "error: database unreachable after 120s, giving up" >&2
+            php artisan db:show || true
+            exit 1
+        fi
+        sleep 2
+    done
+    echo "database is up"
+fi
 
 php artisan migrate --force --no-interaction
 php artisan config:cache
