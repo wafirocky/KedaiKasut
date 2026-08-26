@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // EasyPanel terminates TLS at its Traefik proxy, so the app only sees
+        // plain HTTP unless the X-Forwarded-* headers are trusted.
+        $middleware->trustProxies(at: '*');
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [

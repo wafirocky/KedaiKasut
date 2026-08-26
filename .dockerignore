@@ -16,3 +16,6 @@ tests
 !.env.example
 compose.yaml
 *.md
+
+compose.prod.yaml
+.env.docker
